@@ -24,11 +24,8 @@ extension UITextField {
 }
 
 extension Reactive where Base: UITextField {
-    /// Reactive wrapper for `text` property
-    public var text: ControlProperty<String?> {
-        return value
-    }
 
+    
     /// Reactive wrapper for `delegate`.
     ///
     /// For more information take a look at `DelegateProxyType` protocol documentation.
@@ -36,12 +33,19 @@ extension Reactive where Base: UITextField {
         return RxTextFieldDelegateProxy.proxyForObject(base)
     }
     
+    /// Reactive wrapper for `text` property
+    public var text: ControlProperty<String?> {
+        return value
+    }
+
+
+    
     /// Reactive wrapper for `text` property.
     public var value: ControlProperty<String?> {
         let source: Observable<String?> = Observable.deferred { [weak textField = self.base as UITextField] () -> Observable<String?> in
             let text = textField?.text
             
-            return (textField?.rx.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldDidEndEditing(_:))) ?? Observable.empty())
+            return (textField?.rx.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldShouldBeginEditing(_:))) ?? Observable.empty())
                 .map { a in
                     return a[1] as? String
                 }
@@ -68,29 +72,30 @@ extension Reactive where Base: UITextField {
     
     /// Reactive wrapper for `delegate` message.
     public var didEndEditing: ControlEvent<()> {
-        return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldDidEndEditing(_:)))
-            .map { a in
-                return ()
-        })
-    }
-    
-
-    /// Reactive wrapper for `delegate` message.
-    public var shouldBeginEditing: ControlEvent<()> {
         return ControlEvent<()>(events:
-            self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldShouldBeginEditing(_:)))
+            self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldDidEndEditing(_:)))
             .map { a in
                 return ()
         })
     }
     
-    /// Reactive wrapper for `delegate` message.
-    public var shouldEndEditing: ControlEvent<()> {
-        return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldShouldEndEditing(_:)))
-            .map { a in
-                return ()
-        })
-    }
+//
+//    /// Reactive wrapper for `delegate` message.
+//    public var shouldBeginEditing: Bool {
+//        return ControlEvent<()>(events:
+//            self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldShouldBeginEditing(_:)))
+//            .map { a in
+//                return a
+//        })
+//    }
+//    
+//    /// Reactive wrapper for `delegate` message.
+//    public var shouldEndEditing: Bool {
+//        return ControlEvent<()>(events: self.delegate.methodInvoked(#selector(UITextFieldDelegate.textFieldShouldEndEditing(_:)))
+//            .map { a in
+//                return a
+//        })
+//    }
 
 }
     
